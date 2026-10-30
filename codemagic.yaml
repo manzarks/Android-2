@@ -1,0 +1,27 @@
+workflows:
+  android-workflow:
+    name: Android Workflow
+    max_build_duration: 90
+    instance_type: mac_mini_m2
+    environment:
+      java: 17
+    scripts:
+      - name: Build APK
+        script: |
+          # Определяем папку проекта
+          PROJECT_DIR=$(find . -name "settings.gradle.kts" -o -name "settings.gradle" | head -1 | xargs dirname)
+          echo "Project directory: $PROJECT_DIR"
+          
+          cd "$PROJECT_DIR"
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          
+          # Создаём gradle wrapper если его нет
+          if [ ! -f gradlew ]; then
+            gradle wrapper --gradle-version 8.13
+          fi
+          
+          chmod +x gradlew
+          ./gradlew assembleDebug
+    artifacts:
+      - "**/app/build/outputs/apk/debug/*.apk"
+      - "**/build/outputs/apk/debug/*.apk"
