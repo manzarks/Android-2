@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+set -eu
+DW_GRADLE_VERSION=8.13
+DW_GRADLE_SHA256=20f1b1176237254a6fc204d8434196fa11a4cfb387567519c61556e8710aed78
+DW_GRADLE_USER_HOME=${GRADLE_USER_HOME:-${HOME:-.}/.gradle}
+DW_GRADLE_PARENT="$DW_GRADLE_USER_HOME/wrapper/dists/gradle-$DW_GRADLE_VERSION-bin/dicewars-bootstrap"
+DW_GRADLE_HOME="$DW_GRADLE_PARENT/gradle-$DW_GRADLE_VERSION"
+if [ ! -x "$DW_GRADLE_HOME/bin/gradle" ]; then
+  mkdir -p "$DW_GRADLE_PARENT"
+  DW_ZIP="$DW_GRADLE_PARENT/gradle-$DW_GRADLE_VERSION-bin.zip"
+  curl -fL --retry 3 "https://services.gradle.org/distributions/gradle-$DW_GRADLE_VERSION-bin.zip" -o "$DW_ZIP"
+  if command -v sha256sum >/dev/null 2>&1; then
+    echo "$DW_GRADLE_SHA256  $DW_ZIP" | sha256sum -c -
+  else
+    echo "$DW_GRADLE_SHA256  $DW_ZIP" | shasum -a 256 -c -
+  fi
+  unzip -q -o "$DW_ZIP" -d "$DW_GRADLE_PARENT"
+  rm -f "$DW_ZIP"
+fi
+exec "$DW_GRADLE_HOME/bin/gradle" "$@"
+
